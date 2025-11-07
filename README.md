@@ -151,12 +151,12 @@ npm start
 ## 🧑‍💻 Developer
 
 **👋 Pranav Agarkar**  
-💼 *Engineering Student (IT), aspiring Cybersecurity & Backend Engineer*  
-📍 Mumbai, India  
+💼 *Engineering Student (CSE), aspiring Cybersecurity & Backend Engineer*  
+📍 Solapur, India  
 
 - 💻 Focus: Cybersecurity, Backend, GATE CSE  
 - 🐧 Environment: Fedora KDE, Python, React  
-- 🌐 GitHub: [@pranavagarkar](https://github.com/pranavagarkar)
+- 🌐 GitHub: [@pranavagarkar07](https://github.com/pranavagarkar07)
 
 ---
 
