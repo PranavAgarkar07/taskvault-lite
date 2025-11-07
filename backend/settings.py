@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from cryptography.fernet import Fernet
 import os
-
+from datetime import timedelta
 
 # Load encryption key from environment variable
 FERNET_KEY = os.environ.get("FERNET_KEY")
@@ -45,23 +45,89 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+# INSTALLED_APPS = [
+#     'rest_framework',
+#     'api',
+#     'corsheaders',
+#     'django.contrib.admin',
+#     'django.contrib.auth',
+#     'django.contrib.contenttypes',
+#     'django.contrib.sessions',
+#     'django.contrib.messages',
+#     'django.contrib.staticfiles',
+#     'django.contrib.sites',
+#     'allauth.socialaccount.providers.github',
+#     'allauth.socialaccount.providers.google',
+# ]
+
 INSTALLED_APPS = [
+    # Django REST Framework
     'rest_framework',
-    'api',
+    'rest_framework.authtoken',
     'corsheaders',
+
+    # Your app
+    'api',
+
+    # Core Django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+
+    # Allauth core
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+
+    # OAuth providers
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.github',
+
+    # REST auth integration
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
 ]
+
+
+SITE_ID = 1
 
 REST_FRAMEWORK={
     'DEFAULT_AUTHENTICATION_CLASSES':(
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
     )
 }
+
+REST_USE_JWT = True
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+# After successful OAuth login, redirect here
+LOGIN_REDIRECT_URL = "/oauth/redirect/"
+
+# After logout
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+
+# Disable email requirement and verification
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = "none"
+
+# Force immediate redirect after social login
+SOCIALACCOUNT_LOGIN_ON_GET = True
+
+# Ensure AllAuth redirects authenticated users properly
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
+
+ACCOUNT_ADAPTER = "api.adapter.CustomAccountAdapter"
+
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -74,6 +140,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware'
 ]
 
 

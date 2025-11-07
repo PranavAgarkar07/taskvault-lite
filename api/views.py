@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import redirect
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
 from .models import Task
@@ -30,14 +30,14 @@ def task_list_create(request):
 
    
 @api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def task_delete(request,pk):
     task=Task.objects.get(id=pk)
     task.delete()
     return Response({"message":"Task deleted"})
 
 @api_view(['PATCH'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def task_update(request,pk):
     try:
         task=Task.objects.get(id=pk)
@@ -49,3 +49,27 @@ def task_update(request,pk):
         serializer.save()
         return Response(serializer.data)
     return Response(serializer.errors, status=400)
+
+
+# 🧩 OAUTH REDIRECT HANDLER (Google / GitHub)
+def oauth_redirect_view(request):
+    """
+    After successful OAuth login (via Google or GitHub),
+    redirect user to React app with JWT tokens.
+    """
+    user = request.user
+    if not user.is_authenticated:
+        return redirect("http://localhost:5173/?error=unauthenticated")
+
+    # Generate JWT tokens for the logged-in user
+    refresh = RefreshToken.for_user(user)
+    access_token = str(refresh.access_token)
+    refresh_token = str(refresh)
+
+    # Redirect user back to React app with tokens in query params
+    frontend_url = (
+        f"http://localhost:5173/oauth/callback"
+        f"?access={access_token}&refresh={refresh_token}"
+    )
+    print("🔗 Redirecting to:", frontend_url)  # 👈 Add this log
+    return redirect(frontend_url)

@@ -91,27 +91,47 @@ export default function App() {
 
   //Setting user login
 
-  if (!token)
-    return (
-      <div style={{ textAlign: "center", marginTop: "50px" }}>
-        <h2>🔐 Login or Register</h2>
-        <input
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <div>
-          <button onClick={login}>Login</button>
-          <button onClick={register}>Register</button>
-        </div>
+  //Setting user login
+if (!token)
+  return (
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
+      <h2>🔐 Login or Register</h2>
+
+      <input
+        placeholder="Username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <div>
+        <button onClick={login}>Login</button>
+        <button onClick={register}>Register</button>
       </div>
-    );
+
+      <hr style={{ margin: "20px 0" }} />
+      <h3>Or Login With</h3>
+      <button
+        onClick={() =>
+          (window.location.href = "http://127.0.0.1:8000/accounts/google/login/")
+        }
+      >
+        🌐 Google
+      </button>
+      <button
+        onClick={() =>
+          (window.location.href = "http://127.0.0.1:8000/accounts/github/login/")
+        }
+      >
+        🐙 GitHub
+      </button>
+    </div>
+  );
+
 
   return (
     <div style={{ maxWidth: 400, margin: "auto", textAlign: "center" }}>
