@@ -59,7 +59,7 @@ def oauth_redirect_view(request):
     """
     user = request.user
     if not user.is_authenticated:
-        return redirect("http://localhost:5173/?error=unauthenticated")
+        return redirect("https://taskvault-lite.vercel.app/?error=unauthenticated")
 
     # Generate JWT tokens for the logged-in user
     refresh = RefreshToken.for_user(user)
@@ -68,7 +68,7 @@ def oauth_redirect_view(request):
 
     # Redirect user back to React app with tokens in query params
     frontend_url = (
-        f"http://localhost:5173/oauth/callback"
+        f"https://taskvault-lite.vercel.app/oauth/callback"
         f"?access={access_token}&refresh={refresh_token}"
     )
     print("🔗 Redirecting to:", frontend_url)  # 👈 Add this log
