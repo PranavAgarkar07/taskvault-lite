@@ -8,8 +8,7 @@ export default function App() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState(localStorage.getItem("token"));
-  const [user, setUser] = useState(null);
-
+  
 
   const login = async () => {
     const res = await API.post("login/", { username, password });
@@ -27,24 +26,17 @@ export default function App() {
     setToken(null);
   };
 
-  useEffect(() => {
-    if (token) getTasks();
-    if (token) fetchUser();
-
-  }, [token]);
-
-
-  const fetchUser = async () => {
+  const getUser = async () => {
     try {
-      const res = await API.get("dj-rest-auth/user/", {
+      const res = await API.get("user/", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUser(res.data);
+      console.log("✅ User fetched:", res.data);
+      setUsername(res.data.username || res.data.first_name || "User");
     } catch (err) {
       console.error("❌ Error fetching user:", err);
     }
   };
-
 
   const getTasks = async () => {
     const res = await API.get("tasks/", {
@@ -52,6 +44,11 @@ export default function App() {
     });
     setTasks(res.data);
   };
+
+  useEffect(() => {
+    if (token) getTasks();
+    if (token) getUser();
+  }, [token]);
 
   const addTask = async () => {
     if (!title.trim()) {
@@ -107,53 +104,52 @@ export default function App() {
   });
 
   //Setting user login
+  if (!token)
+    return (
+      <div style={{ textAlign: "center", marginTop: "50px" }}>
+        <h2>🔐 Login or Register</h2>
 
-  //Setting user login
-if (!token)
-  return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h2>🔐 Login or Register</h2>
+        <input
+          placeholder="Username"
+          value={user}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <div>
+          <button onClick={login}>Login</button>
+          <button onClick={register}>Register</button>
+        </div>
 
-      <input
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <div>
-        <button onClick={login}>Login</button>
-        <button onClick={register}>Register</button>
+        <hr style={{ margin: "20px 0" }} />
+        <h3>Or Login With</h3>
+        <button
+          onClick={() =>
+            (window.location.href =
+              "https://taskvault-lite.onrender.com/accounts/google/login/")
+          }
+        >
+          🌐 Google
+        </button>
+        <button
+          onClick={() =>
+            (window.location.href =
+              "https://taskvault-lite.onrender.com/accounts/github/login/")
+          }
+        >
+          🐙 GitHub
+        </button>
       </div>
-
-      <hr style={{ margin: "20px 0" }} />
-      <h3>Or Login With</h3>
-      <button
-        onClick={() =>
-          (window.location.href = "https://taskvault-lite.onrender.com/accounts/google/login/")
-        }
-      >
-        🌐 Google
-      </button>
-      <button
-        onClick={() =>
-          (window.location.href = "https://taskvault-lite.onrender.com/accounts/github/login/")
-        }
-      >
-        🐙 GitHub
-      </button>
-    </div>
-  );
-
+    );
 
   return (
     <div style={{ maxWidth: 400, margin: "auto", textAlign: "center" }}>
       <button onClick={logout}>Logout</button>
-      <h3>Welcome {username}</h3>
+      <h3>👋 Welcome, {username || "Guest"}</h3>
       <h1>📁 TaskVault Lite</h1>
 
       <div style={{ margin: "20px 0px" }}>

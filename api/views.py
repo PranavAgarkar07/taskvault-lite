@@ -73,3 +73,15 @@ def oauth_redirect_view(request):
     )
     print("🔗 Redirecting to:", frontend_url)  # 👈 Add this log
     return redirect(frontend_url)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    user = request.user
+    return Response({
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+    })
