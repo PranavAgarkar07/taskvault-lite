@@ -117,14 +117,14 @@ if (!token)
       <h3>Or Login With</h3>
       <button
         onClick={() =>
-          (window.location.href = "http://127.0.0.1:8000/accounts/google/login/")
+          (window.location.href = "https://taskvault-lite.onrender.com/accounts/google/login/")
         }
       >
         🌐 Google
       </button>
       <button
         onClick={() =>
-          (window.location.href = "http://127.0.0.1:8000/accounts/github/login/")
+          (window.location.href = "https://taskvault-lite.onrender.com/accounts/github/login/")
         }
       >
         🐙 GitHub
