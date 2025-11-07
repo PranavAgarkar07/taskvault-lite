@@ -154,7 +154,7 @@ npm start
 💼 *Engineering Student (CSE), aspiring Cybersecurity & Backend Engineer*  
 📍 Solapur, India  
 
-- 💻 Focus: Cybersecurity, Backend, GATE CSE  
+- 💻 Focus: Cybersecurity, Backend, Frontend
 - 🐧 Environment: Fedora KDE, Python, React  
 - 🌐 GitHub: [@pranavagarkar07](https://github.com/pranavagarkar07)
 
