@@ -77,7 +77,7 @@ def oauth_redirect_view(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_profile(request):
-    user = request.user
+    user = request.user         
     return Response({
         "id": user.id,
         "username": user.username,

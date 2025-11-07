@@ -8,7 +8,7 @@ export default function App() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState(localStorage.getItem("token"));
-  
+  const [user, setUser] = useState(null);
 
   const login = async () => {
     const res = await API.post("login/", { username, password });
