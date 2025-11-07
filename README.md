@@ -19,51 +19,48 @@
 **TaskVault Lite** is a secure and modern **to-do manager** designed to demonstrate full-stack development skills, data security practices, and API design using Django & React.
 
 It supports:
-- ✅ JWT Authentication (via Django SimpleJWT)
+- ✅ JWT Authentication (via Django SimpleJWT), Google & GitHub OAuth
 - 🔒 **Fernet Encryption** for sensitive data (task titles stored securely)
 - 🗓 Task creation with due dates and completion tracking
 - ⚙️ Modular REST API for frontend integration
 - 💻 Clean React frontend with Axios-based API communication
 
 ---
+## ⚙️ Features
+
+🔐 Authentication
+- JWT-based authentication with refresh tokens
+- OAuth login via Google and GitHub
+- Secure token storage (no sensitive data in cookies)
+
+📋 Task Management
+- Create, edit, delete, and toggle completion
+- Due dates for better planning
+- Filter by all / completed / pending
+- Encrypted titles in the database
+
+🔒 Security & Performance
+- Fernet encryption (AES-128 under the hood)
+- CSRF & CORS protection enabled
+- Built on Django 5.0+ and React 18 with Vite
+- Local development ready, cloud deployable
+---
 
 ## 🧩 Tech Stack
 
-| Layer | Technology |
-|--------|-------------|
-| **Frontend** | React + Axios |
-| **Backend** | Django + Django REST Framework |
-| **Auth** | JSON Web Tokens (SimpleJWT) |
-| **Encryption** | Fernet (symmetric encryption) |
-| **Database** | SQLite (development) / PostgreSQL (production-ready) |
-| **Language** | Python 3.14+, JavaScript (ES6) |
+| Layer      | Technology                                        |
+| ---------- | ------------------------------------------------- |
+| Frontend   | React (Vite, Axios)                               |
+| Backend    | Django + Django REST Framework                    |
+| Auth       | JWT (SimpleJWT) + Django-Allauth (Google, GitHub) |
+| Database   | SQLite (default, easy to migrate to PostgreSQL)   |
+| Encryption | Fernet (Cryptography)                             |
+| API Auth   | Bearer Token                                      |
+| Deployment | Docker / Render / Railway Ready                   |
 
 ---
 
-## 🏗️ Project Structure
 
-```
-taskvault-lite/
-├── backend/
-│   ├── api/
-│   │   ├── models.py
-│   │   ├── serializers.py
-│   │   ├── views.py
-│   │   └── urls.py
-│   ├── backend/
-│   │   └── settings.py
-│   └── manage.py
-│
-├── frontend/
-│   ├── src/
-│   ├── package.json
-│
-├── .env
-├── .gitignore
-└── README.md
-```
-
----
 
 ## ⚙️ Setup Instructions
 
@@ -100,38 +97,88 @@ npm start
 
 ---
 
-## 🔑 Core Features
+# 🔑 OAuth Setup Guide (Google & GitHub)
 
-| Feature | Description |
-|----------|--------------|
-| 🔐 **JWT Auth** | Secure login / logout using tokens |
-| 🔒 **Fernet Encryption** | Task titles encrypted at rest in DB |
-| 📋 **CRUD Operations** | Add, edit, delete, mark complete |
-| 📆 **Due Dates** | Optional due date field |
-| 🌐 **REST API** | DRF backend serving JSON endpoints |
-| ⚡ **React Frontend** | Responsive UI with Axios |
+This guide explains how to configure Google and GitHub OAuth for **TaskVault Lite** (Django + React).
+
+---
+
+## 🟢 Google OAuth Setup
+
+1. Visit [Google Cloud Console](https://console.cloud.google.com/).
+2. Create OAuth credentials:
+   - **Authorized JavaScript Origins:**
+     ```
+     http://127.0.0.1:8000
+     http://127.0.0.1:5173
+     ```
+   - **Authorized Redirect URI:**
+     ```
+     http://127.0.0.1:8000/accounts/google/login/callback/
+     ```
+3. Copy your **Client ID** and **Client Secret**.
+4. Open **http://127.0.0.1:8000/admin/**
+   - Go to **Social Applications → Add Social Application**
+   - Provider: `Google`
+   - Add your credentials
+   - Select Site: `127.0.0.1:8000`
+5. Save and test:
+   ```
+   http://127.0.0.1:8000/accounts/google/login/
+   ```
+
+---
+
+## 🐙 GitHub OAuth Setup
+
+1. Go to [GitHub Developer Settings → OAuth Apps](https://github.com/settings/developers).
+2. Register a new app:
+   - **Homepage URL:** `http://127.0.0.1:8000`
+   - **Authorization Callback URL:**  
+     `http://127.0.0.1:8000/accounts/github/login/callback/`
+3. Copy **Client ID** and **Client Secret**.
+4. Add in Django Admin:
+   - Provider: `GitHub`
+   - Add credentials
+   - Select Site: `127.0.0.1:8000`
+5. Save and test:
+   ```
+   http://127.0.0.1:8000/accounts/github/login/
+   ```
+
+---
+
+✅ **Done!**  
+Your app now supports secure login via **Google** and **GitHub** using Django-Allauth.
+
 
 ---
 
 ## 🧠 Upcoming Features
 
-| Status | Feature | Description |
-|:--:|:--|:--|
-| 🚧 | **2FA (Google Authenticator)** | Add TOTP-based 2FA for secure login |
-| 🚧 | **Task Prioritization** | Mark tasks as important |
-| 🚧 | **Due Soon Highlighting** | Color-code tasks due soon |
-| 🚧 | **Docker Deployment** | Containerize for cloud deployment |
+| Feature                                    | Description                                   |
+| ------------------------------------------ | --------------------------------------------- |
+| 🏷️ **Task Priority**                      | Add low/medium/high priority levels for tasks |
+| ⏰ **Due Soon Alerts**                      | Highlight tasks nearing their deadlines       |
+| 📊 **Analytics Dashboard**                 | Visualize task completion and progress trends |
+| 🔐 **2FA Security (Google Authenticator)** | Optional two-factor authentication            |
+| 🤖 **AI Task Suggestions**                 | Suggest task priorities or reminders using AI |
+| 🐳 **Docker & Cloud Deployment**           | Containerize and deploy to Render/Railway     |
+| 🌙 **Dark Mode**                           | Toggle between light and dark themes          |
+
 
 ---
 
 ## 🔒 Security Overview
 
-| Security Layer | Technology Used |
-|----------------|-----------------|
-| At-rest encryption | Fernet (AES-128, URL-safe base64) |
-| Authentication | JWT (stateless) |
-| Password hashing | Django PBKDF2 |
-| 2FA (upcoming) | pyotp + Google Authenticator |
+| Security Layer     | Technology Used                          |
+| ------------------ | ---------------------------------------- |
+| At-rest encryption | Fernet (AES-128)                         |
+| Authentication     | JWT (stateless)                          |
+| Password hashing   | PBKDF2                                   |
+| OAuth              | Django-Allauth                           |
+| CSRF & CORS        | Enabled                                  |
+| 2FA                | (Planned with TOTP/Google Authenticator) |
 
 ---
 
