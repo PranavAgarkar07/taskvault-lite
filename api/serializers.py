@@ -1,5 +1,11 @@
 from rest_framework import serializers
 from .models import Task
+from dj_rest_auth.serializers import UserDetailsSerializer
+from rest_framework import serializers
+
+class CustomUserSerializer(UserDetailsSerializer):
+    class Meta(UserDetailsSerializer.Meta):
+        fields = ('pk', 'username', 'email', 'first_name', 'last_name')
 
 class TaskSerializer(serializers.ModelSerializer):
     due_date = serializers.DateField(required=False, allow_null=True)

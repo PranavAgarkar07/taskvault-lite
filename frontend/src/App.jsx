@@ -8,6 +8,8 @@ export default function App() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState(localStorage.getItem("token"));
+  const [user, setUser] = useState(null);
+
 
   const login = async () => {
     const res = await API.post("login/", { username, password });
@@ -27,8 +29,22 @@ export default function App() {
 
   useEffect(() => {
     if (token) getTasks();
+    if (token) fetchUser();
+
   }, [token]);
 
+
+  const fetchUser = async () => {
+    try {
+      const res = await API.get("dj-rest-auth/user/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(res.data);
+    } catch (err) {
+      console.error("❌ Error fetching user:", err);
+    }
+  };
+  
   const getTasks = async () => {
     const res = await API.get("tasks/", {
       headers: { Authorization: `Bearer ${token}` },

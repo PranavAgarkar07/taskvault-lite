@@ -113,6 +113,10 @@ REST_FRAMEWORK={
     )
 }
 
+REST_AUTH_SERIALIZERS = {
+    'USER_DETAILS_SERIALIZER': 'api.serializers.CustomUserSerializer',
+}
+
 REST_USE_JWT = True
 
 SIMPLE_JWT = {
