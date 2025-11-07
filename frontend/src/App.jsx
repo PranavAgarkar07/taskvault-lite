@@ -32,7 +32,7 @@ export default function App() {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("✅ User fetched:", res.data);
-      setUsername(res.data.username || res.data.first_name || "User");
+      setUsername(res.data.full_name ||res.data.username || res.data.first_name || "User");
     } catch (err) {
       console.error("❌ Error fetching user:", err);
     }
