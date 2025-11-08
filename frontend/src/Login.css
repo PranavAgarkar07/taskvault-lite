@@ -55,9 +55,10 @@
 }
 
 .error {
-  color: #f87171;
-  font-size: 0.9rem;
-  margin-bottom: 10px;
+  color: #ff4b4b;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 14px;
 }
 
 .btn-login {
@@ -167,4 +168,11 @@
   .login-card h2 {
     font-size: 1.5rem;
   }
+}
+
+.success {
+  color: #00ff99;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 14px;
 }

@@ -63,12 +63,13 @@
   padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
+  font-size: 15px;
   transition: all 0.3s ease;
 }
 .filter-btn.active {
   background: #2563eb;
   color: white;
-  font-weight: 600;
+  font-weight: 700;
   box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
 }
 .filter-btn:hover {
@@ -217,4 +218,119 @@
     margin-top: 8px;
     color: #93c5fd;
     font-weight: 500;
+}
+
+.btn-edit,
+.btn-delete {
+  transition: all 0.2s ease;
+}
+
+.task-item .btn-edit:hover {
+  transform: translateY(-1px);
+}
+
+.task-item .btn-delete:hover {
+  transform: translateY(-1px);
+}
+/* ---------- Task row layout ---------- */
+/* Ensure the immediate container around title + controls uses flex.
+   If your li or .task-left already is display:flex, ensure the .task-info grows */
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Make the left area grow and the controls stick to the right */
+.task-info {
+  flex: 1 1 auto; /* allow content to take remaining space */
+}
+
+/* Controls container pinned to the right */
+.task-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ---------- Button base ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  user-select: none;
+}
+
+/* Hover micro-lift */
+.btn:hover { transform: translateY(-2px); }
+
+/* Disabled styling */
+.btn[disabled] {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ---------- Variant styles ---------- */
+.btn-edit {
+  background: transparent;
+  color: #93c5fd;
+  border-color: rgba(59,130,246,0.12);
+}
+.btn-edit:hover { background: rgba(59,130,246,0.06); box-shadow: 0 6px 14px rgba(59,130,246,0.06); }
+
+.btn-delete {
+  background: rgba(244,63,94,0.06);
+  color: #fb7185;
+  border-color: rgba(244,63,94,0.12);
+}
+.btn-delete:hover { background: rgba(244,63,94,0.10); box-shadow: 0 6px 14px rgba(244,63,94,0.06); }
+
+.btn-save {
+  background: linear-gradient(180deg,#2563eb,#1d4ed8);
+  color: #fff;
+  border-color: rgba(37,99,235,0.12);
+}
+.btn-save:hover { box-shadow: 0 8px 24px rgba(37,99,235,0.18); }
+
+.btn-cancel {
+  background: transparent;
+  color: #cbd5e1;
+  border-color: rgba(255,255,255,0.04);
+}
+.btn-cancel:hover { background: rgba(255,255,255,0.03); }
+
+/* ---------- Edit-row input tweaks ---------- */
+.edit-row input[type="text"],
+.edit-row input[type="date"],
+.edit-input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #0b1120;
+  color: #e2e8f0;
+  border: 1px solid rgba(255,255,255,0.06);
+  outline: none;
+}
+.edit-row input:focus,
+.edit-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 6px 18px rgba(59,130,246,0.12);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 520px) {
+  .task-controls { gap: 6px; }
+  .btn { padding: 6px 8px; font-size: 0.9rem; border-radius: 7px; }
+  .task-item { gap: 8px; }
+  /* On tiny screens move buttons under content for more space */
+  .task-item .task-controls {
+    margin-left: 0;
+  }
 }

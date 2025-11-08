@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
 import API from "./api";
 import "./Login.css";
 
@@ -8,7 +8,9 @@ export default function Login({ setToken }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -21,21 +23,38 @@ export default function Login({ setToken }) {
 
   const login = async () => {
     if (!username || !password) {
-      setError("Please enter both username and password.");
+      setError("⚠️ Please enter both username and password.");
+      setSuccess("");
       return;
     }
 
     setLoading(true);
     setError("");
+    setSuccess("");
 
     try {
       const res = await API.post("login/", { username, password });
       const token = res.data.access;
+
+      if (!token) throw new Error("No token received.");
+
       localStorage.setItem("token", token);
       setToken(token);
+      setSuccess("✅ Login successful! Redirecting...");
+      
+      // Redirect smoothly after 1.5 seconds
+      setTimeout(() => navigate("/dashboard"), 1500);
+
     } catch (err) {
-      console.error("Login error:", err);
-      setError("Invalid username or password.");
+      console.error("❌ Login error:", err);
+
+      const msg =
+        err.response?.data?.detail ||
+        err.response?.data?.error ||
+        "❌ Invalid username or password.";
+
+      setError(msg);
+      setSuccess("");
     } finally {
       setLoading(false);
     }
@@ -51,11 +70,7 @@ export default function Login({ setToken }) {
       >
         <motion.h2 variants={fadeIn}>🔐 Login to TaskVault</motion.h2>
 
-        <motion.div
-          className="input-group"
-          variants={fadeIn}
-          custom={1}
-        >
+        <motion.div className="input-group" variants={fadeIn} custom={1}>
           <input
             placeholder="Username"
             value={username}
@@ -71,42 +86,56 @@ export default function Login({ setToken }) {
           />
         </motion.div>
 
-        {error && (
-          <motion.p className="error" variants={fadeIn} custom={2}>
-            {error}
-          </motion.p>
-        )}
+        {/* ⚡ Animated Error & Success */}
+        <AnimatePresence mode="wait">
+          {error && (
+            <motion.p
+              key="error"
+              className="error"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              {error}
+            </motion.p>
+          )}
+          {success && (
+            <motion.p
+              key="success"
+              className="success"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              {success}
+            </motion.p>
+          )}
+        </AnimatePresence>
 
         <motion.button
           onClick={login}
           disabled={loading}
           className="btn-login"
           variants={fadeIn}
-          custom={3}
+          custom={2}
         >
           {loading ? "Logging in..." : "Login"}
         </motion.button>
 
-        <motion.p className="register-text" variants={fadeIn} custom={4}>
+        <motion.p className="register-text" variants={fadeIn} custom={3}>
           Don’t have an account?{" "}
           <Link to="/register" className="link">
             Register here
           </Link>
         </motion.p>
 
-        <motion.div
-          className="divider"
-          variants={fadeIn}
-          custom={5}
-        >
+        <motion.div className="divider" variants={fadeIn} custom={4}>
           <span>OR</span>
         </motion.div>
 
-        <motion.div
-          className="oauth-buttons"
-          variants={fadeIn}
-          custom={6}
-        >
+        <motion.div className="oauth-buttons" variants={fadeIn} custom={5}>
           <button
             className="btn-oauth google"
             onClick={() =>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import API from "./api";
+import { AnimatePresence } from "framer-motion";
 import "./Register.css";
 
 export default function Register() {
@@ -24,26 +25,52 @@ export default function Register() {
   const register = async () => {
     if (!username || !password || !confirmPassword) {
       setError("All fields are required.");
+      setSuccess("");
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError("❌ Passwords do not match.");
+      setSuccess("");
       return;
     }
 
-    setLoading(true);
     setError("");
     setSuccess("");
+    setLoading(true);
 
     try {
-      await API.post("register/", { username, password });
-      setSuccess("Account created successfully! You can now log in.");
+      const res = await API.post("register/", {
+        username,
+        password,
+        password2: confirmPassword,
+      });
+
+      console.log("✅ Registration success:", res.data);
+      setSuccess("✅ Account created successfully! Redirecting to login...");
       setUsername("");
       setPassword("");
       setConfirmPassword("");
+
+      // ⏳ Redirect after short delay
+      setTimeout(() => {
+        navigate("/login"); // redirect to your login page
+      }, 2000);
     } catch (err) {
-      console.error("Register error:", err);
-      setError("Registration failed. Try again.");
+      console.error("❌ Register error:", err);
+
+      if (err.response?.data) {
+        const data = err.response.data;
+        const msg =
+          data.password ||
+          data.password2 ||
+          data.username ||
+          data.detail ||
+          data.error ||
+          "Registration failed. Please try again.";
+        setError(Array.isArray(msg) ? msg[0] : msg);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -82,13 +109,29 @@ export default function Register() {
           />
         </motion.div>
 
-        {error && (
-          <motion.p className="error" variants={fadeIn} custom={2}>
-            {error}
-          </motion.p>
-        )}
+        <AnimatePresence mode="wait">
+          {error && (
+            <motion.p
+              key={error} // important to re-render on new message
+              className="error"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              {error}
+            </motion.p>
+          )}
+        </AnimatePresence>
         {success && (
-          <motion.p className="success" variants={fadeIn} custom={2}>
+          <motion.p
+            key="success"
+            className="success"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
             {success}
           </motion.p>
         )}
@@ -105,7 +148,7 @@ export default function Register() {
 
         <motion.p className="login-text" variants={fadeIn} custom={4}>
           Already have an account?{" "}
-          <Link to="/login" className="link">
+          <Link to="/" className="link">
             Login here
           </Link>
         </motion.p>

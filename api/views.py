@@ -88,3 +88,17 @@ def user_profile(request):
         "full_name": full_name,
 
     })
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def task_update(request, pk):
+    try:
+        task = Task.objects.get(id=pk)
+    except Task.DoesNotExist:
+        return Response({"error": "Task not found"}, status=404)
+    
+    serializer = TaskSerializer(task, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=400)
