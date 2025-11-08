@@ -38,6 +38,7 @@ It supports:
 - Due dates for better planning
 - Filter by all / completed / pending
 - Encrypted titles in the database
+- Capable of offline task management
 
 🔒 Security & Performance
 - Fernet encryption (AES-128 under the hood)
