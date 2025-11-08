@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import API from "./api";
 import { motion } from "framer-motion";
 import "./TaskList.css";
-
+import logoUrl from "./download.svg";
+import { Link } from "react-router-dom";
 export default function TaskList() {
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
@@ -517,7 +518,8 @@ export default function TaskList() {
           <button onClick={logout} className="btn-logout">
             Logout
           </button>
-          <h3 className="usernameClass">👋 Welcome, {username || "Guest"}</h3>
+          
+          <Link to="/"><h3 className="usernameClass">👋 Welcome, {username || "Guest"}</h3></Link>
           <br />
           <br />
           <br />

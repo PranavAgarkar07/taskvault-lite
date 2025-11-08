@@ -10,7 +10,7 @@
 /* === HERO === */
 .hero-dark {
   text-align: center;
-  padding: 120px 20px 100px;
+  padding: 120px 0px 0px;
   background: radial-gradient(circle at top, #1e293b, #0f172a 70%);
 }
 

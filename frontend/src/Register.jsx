@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import API from "./api";
 import { AnimatePresence } from "framer-motion";
 import "./Register.css";
+import logoUrl from "./download.svg";
 
 export default function Register() {
   const [username, setUsername] = useState("");
@@ -84,6 +85,17 @@ export default function Register() {
         animate="visible"
         variants={fadeIn}
       >
+        <Link to="/">
+          <img
+            src={logoUrl}
+            className="logo-svg"
+            style={{
+              justifyContent: "center", // Centers horizontally
+              alignItems: "center", // Centers vertically
+            }}
+            alt="TaskVault logo"
+          />
+        </Link>
         <motion.h2 variants={fadeIn}>📝 Create Your Account</motion.h2>
 
         <motion.div className="input-group" variants={fadeIn} custom={1}>
@@ -148,7 +160,7 @@ export default function Register() {
 
         <motion.p className="login-text" variants={fadeIn} custom={4}>
           Already have an account?{" "}
-          <Link to="/" className="link">
+          <Link to="/login" className="link">
             Login here
           </Link>
         </motion.p>

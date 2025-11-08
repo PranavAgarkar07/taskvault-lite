@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import API from "./api";
 import "./Login.css";
+import logoUrl from "./download.svg";
 
 export default function Login({ setToken }) {
   const [username, setUsername] = useState("");
@@ -41,10 +42,9 @@ export default function Login({ setToken }) {
       localStorage.setItem("token", token);
       setToken(token);
       setSuccess("✅ Login successful! Redirecting...");
-      
+
       // Redirect smoothly after 1.5 seconds
       setTimeout(() => navigate("/dashboard"), 1500);
-
     } catch (err) {
       console.error("❌ Login error:", err);
 
@@ -68,8 +68,18 @@ export default function Login({ setToken }) {
         animate="visible"
         variants={fadeIn}
       >
+        <Link to="/">
+          <img
+            src={logoUrl}
+            className="logo-svg"
+            style={{
+              justifyContent: "center", // Centers horizontally
+              alignItems: "center", // Centers vertically
+            }}
+            alt="TaskVault logo"
+          />
+        </Link>
         <motion.h2 variants={fadeIn}>🔐 Login to TaskVault</motion.h2>
-
         <motion.div className="input-group" variants={fadeIn} custom={1}>
           <input
             placeholder="Username"
@@ -85,7 +95,6 @@ export default function Login({ setToken }) {
             disabled={loading}
           />
         </motion.div>
-
         {/* ⚡ Animated Error & Success */}
         <AnimatePresence mode="wait">
           {error && (
@@ -113,7 +122,6 @@ export default function Login({ setToken }) {
             </motion.p>
           )}
         </AnimatePresence>
-
         <motion.button
           onClick={login}
           disabled={loading}
@@ -123,18 +131,15 @@ export default function Login({ setToken }) {
         >
           {loading ? "Logging in..." : "Login"}
         </motion.button>
-
         <motion.p className="register-text" variants={fadeIn} custom={3}>
           Don’t have an account?{" "}
           <Link to="/register" className="link">
             Register here
           </Link>
         </motion.p>
-
         <motion.div className="divider" variants={fadeIn} custom={4}>
           <span>OR</span>
         </motion.div>
-
         <motion.div className="oauth-buttons" variants={fadeIn} custom={5}>
           <button
             className="btn-oauth google"

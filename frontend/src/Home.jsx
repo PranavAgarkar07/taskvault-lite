@@ -1,6 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
 import "./Home.css";
+import logoUrl from "./download.svg";
+import { Link } from "react-router-dom";
+
 import {
   FaBolt,
   FaShieldAlt,
@@ -23,7 +26,26 @@ export default function Home() {
   return (
     <div className="home-dark">
       {/* ===== Hero Section ===== */}
-      <section className="hero-dark">
+      <section
+        className="hero-dark"
+        style={{
+          // display: "flex",
+          justifyContent: "center", // Centers horizontally
+          alignItems: "center", // Centers vertically
+          height: "100vh", // Example: Occupy full viewport height
+          width: "100vw", // Example: Occupy full viewport width
+          // border: "1px solid lightgray", // For visualization
+        }}
+      >
+        <img
+          src={logoUrl}
+          className="logo-svg"
+          style={{
+            justifyContent: "center", // Centers horizontally
+            alignItems: "center", // Centers vertically
+          }}
+          alt="TaskVault logo"
+        />
         <motion.h1
           initial="hidden"
           animate="visible"
@@ -40,9 +62,8 @@ export default function Home() {
           custom={1}
           className="hero-subtitle"
         >
-          Manage. Sync. Secure.  
-          <br />
-          A lightning-fast open-source task manager built for you.
+          Manage. Sync. Secure.
+          <br />A lightning-fast open-source task manager built for you.
         </motion.p>
 
         <motion.div
@@ -52,9 +73,9 @@ export default function Home() {
           custom={2}
           className="hero-buttons"
         >
-          <a href="/dashboard" className="btn-primary">
+          <Link to="/dashboard" className="btn-primary">
             🚀 Launch App
-          </a>
+          </Link>
           <a
             href="https://github.com/pranavagarkar07/taskvault-lite"
             target="_blank"
@@ -86,7 +107,8 @@ export default function Home() {
           custom={1}
           className="section-subtitle"
         >
-          Designed to make productivity effortless — fast, private, and reliable.
+          Designed to make productivity effortless — fast, private, and
+          reliable.
         </motion.p>
 
         <div className="feature-grid">
@@ -149,9 +171,9 @@ export default function Home() {
       >
         <h2>Start Organizing Today</h2>
         <p>Experience productivity redefined — simple, smart, and secure.</p>
-        <a href="/dashboard" className="btn-primary">
+        <Link to="/dashboard" className="btn-primary">
           Get Started →
-        </a>
+        </Link>
       </motion.section>
 
       {/* ===== Footer ===== */}
