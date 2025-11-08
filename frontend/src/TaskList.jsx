@@ -12,6 +12,7 @@ export default function TaskList() {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("taskvault_user");
     localStorage.removeItem("taskvault_tasks");
     setToken(null);
     window.location.reload();
@@ -19,12 +20,26 @@ export default function TaskList() {
 
   const getUser = async () => {
     try {
+      // 1️⃣ Check localStorage first
+      const cachedUser = localStorage.getItem("taskvault_user");
+      if (cachedUser) {
+        const user = JSON.parse(cachedUser);
+        setUsername(
+          user.full_name || user.username || user.first_name || "User"
+        );
+        return; // skip API if cache exists
+      }
+
+      // 2️⃣ Otherwise fetch from backend
       const res = await API.get("user/", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const user =
-        res.data.full_name || res.data.username || res.data.first_name || "User";
-      setUsername(user);
+
+      const user = res.data;
+      setUsername(user.full_name || user.username || user.first_name || "User");
+
+      // 3️⃣ Cache for later use
+      localStorage.setItem("taskvault_user", JSON.stringify(user));
     } catch (err) {
       console.error("❌ Error fetching user:", err);
       if (err.response?.status === 401) logout();
@@ -60,60 +75,83 @@ export default function TaskList() {
   }, [token]);
 
   const addTask = async () => {
-    if (!title.trim()) {
-      alert("Please enter a task title!");
-      return;
-    }
+    if (!title.trim()) return;
 
     const formattedDate =
       dueDate && dueDate !== ""
         ? new Date(dueDate).toISOString().split("T")[0]
         : null;
 
+    // 1️⃣ Optimistically update the UI
+    const tempId = Date.now();
+    const newTask = {
+      id: tempId,
+      title,
+      due_date: formattedDate,
+      completed: false,
+    };
+    setTasks((prev) => [...prev, newTask]);
+
+    setTitle("");
+    setDueDate("");
+
     try {
-      await API.post(
+      // 2️⃣ Send request in background
+      const res = await API.post(
         "tasks/",
         { title, due_date: formattedDate },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setTitle("");
-      setDueDate("");
-      getTasks();
+
+      // 3️⃣ Replace temp task with actual task returned by backend
+      setTasks((prev) =>
+        prev.map((task) => (task.id === tempId ? res.data : task))
+      );
     } catch (err) {
-      console.error("❌ Error adding task:", err.response?.data || err.message);
+      console.error("❌ Error adding task:", err);
+      // 4️⃣ Revert if request failed
+      setTasks((prev) => prev.filter((t) => t.id !== tempId));
     }
   };
 
   const deleteTask = async (id) => {
+    // Optimistic UI update
+    const oldTasks = [...tasks];
+    setTasks(tasks.filter((t) => t.id !== id));
+
     try {
       await API.delete(`tasks/${id}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setTasks((prev) => prev.filter((t) => t.id !== id));
-      localStorage.setItem(
-        "taskvault_tasks",
-        JSON.stringify(tasks.filter((t) => t.id !== id))
-      );
     } catch (err) {
-      console.error("❌ Delete error:", err.response?.data || err.message);
+      console.error("❌ Delete error:", err);
+      // Revert if delete fails
+      setTasks(oldTasks);
     }
   };
 
   const toggleComplete = async (id, newStatus) => {
+    // Optimistic update
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id ? { ...task, completed: newStatus } : task
+      )
+    );
+
     try {
       await API.patch(
         `tasks/${id}/update/`,
         { completed: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
+    } catch (err) {
+      console.error("❌ Toggle error:", err);
+      // Revert on failure
       setTasks((prev) =>
         prev.map((task) =>
-          task.id === id ? { ...task, completed: newStatus } : task
+          task.id === id ? { ...task, completed: !newStatus } : task
         )
       );
-    } catch (err) {
-      console.error("❌ Error toggling task:", err.response?.data || err.message);
     }
   };
 
@@ -127,7 +165,9 @@ export default function TaskList() {
     return (
       <div style={{ textAlign: "center", marginTop: "50px" }}>
         <h2>Session expired ⚠️</h2>
-        <button onClick={() => (window.location.href = "/")}>Login again</button>
+        <button onClick={() => (window.location.href = "/")}>
+          Login again
+        </button>
       </div>
     );
   }
