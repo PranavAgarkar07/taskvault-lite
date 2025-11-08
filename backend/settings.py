@@ -144,14 +144,14 @@ ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
 ACCOUNT_ADAPTER = "api.adapter.CustomAccountAdapter"
 
 CORS_ALLOWED_ORIGINS = os.environ.get(
-    "CORS_ALLOWED_ORIGINS", "https://taskvault-lite.vercel.app"
+    "CORS_ALLOWED_ORIGINS", "https://taskvault-lite.vercel.app,http://localhost:5173"
 ).split(",")
 
 CSRF_TRUSTED_ORIGINS = os.environ.get(
-    "CSRF_TRUSTED_ORIGINS", "https://taskvault-lite.vercel.app"
+    "CSRF_TRUSTED_ORIGINS", "https://taskvault-lite.vercel.app,http://localhost:5173"
 ).split(",")
 
-# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = True
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -169,7 +169,7 @@ MIDDLEWARE = [
 
 
 CORS_ALLOWED_ORIGINS = [
-    # "http://localhost:5173",
+    "http://localhost:5173",
     "https://taskvault-lite.vercel.app"
 ]
 
