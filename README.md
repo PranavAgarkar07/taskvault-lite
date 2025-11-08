@@ -195,6 +195,18 @@ Your app now supports secure login via **Google** and **GitHub** using Django-Al
 
 ---
 
+## How to Contribute
+1. Fork this repo.
+2. Create a new branch (`frontend/improve-ui` or `backend/fix-api`).
+3. Make your changes.
+4. Commit and push.
+5. Open a Pull Request.
+
+## Contact
+If you want to collaborate directly, open an **Issue** or tag **@pranavagarkar07**.
+
+---
+
 ## 🧑‍💻 Developer
 
 **👋 Pranav Agarkar**  
