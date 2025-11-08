@@ -5,6 +5,7 @@ from .models import Task
 from .serializers import TaskSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
+from django.http import JsonResponse
 
 # Create your views here.
 
@@ -102,3 +103,6 @@ def task_update(request, pk):
         serializer.save()
         return Response(serializer.data)
     return Response(serializer.errors, status=400)
+
+def ping(request):
+    return JsonResponse({"status": "alive"})

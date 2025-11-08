@@ -16,7 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from api.views import oauth_redirect_view
+from api.views import oauth_redirect_view, ping
+
 from rest_framework_simplejwt.views import (
     TokenVerifyView,
     TokenRefreshView,
@@ -32,4 +33,5 @@ urlpatterns = [
     path('dj-rest-auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('dj-rest-auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path("oauth/redirect/", oauth_redirect_view, name="oauth_redirect"),
+    path("ping/", ping)
 ]
