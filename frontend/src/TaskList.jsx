@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "./api";
+import { motion } from "framer-motion";
+import "./TaskList.css";
 
 export default function TaskList() {
   const [tasks, setTasks] = useState([]);
@@ -9,6 +11,82 @@ export default function TaskList() {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 40 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.15, duration: 0.6, ease: "easeOut" },
+    }),
+  };
+
+  useEffect(() => {
+    const syncOfflineTasks = async () => {
+      // 1) Process queued deletes first
+      const queuedDeletes = JSON.parse(
+        localStorage.getItem("localDeletes") || "[]"
+      );
+      if (queuedDeletes.length > 0) {
+        console.log(`🗑️ Syncing ${queuedDeletes.length} queued delete(s)...`);
+        const remainingDeletes = [];
+        for (const d of queuedDeletes) {
+          try {
+            await API.delete(`tasks/${d.id}/`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            console.log("✅ Deleted on server:", d.id);
+          } catch (err) {
+            console.error("❌ Failed to delete on server:", d.id, err);
+            remainingDeletes.push(d); // keep for later retry
+          }
+        }
+        localStorage.setItem("localDeletes", JSON.stringify(remainingDeletes));
+      }
+
+      // 2) Then process pending creations / unsynced tasks
+      const localTasks = JSON.parse(localStorage.getItem("localTasks") || "[]");
+      const pending = localTasks.filter((t) => t.pendingSync);
+
+      if (pending.length === 0) {
+        // still update UI from localTasks after deletes processed
+        setTasks(localTasks);
+        return;
+      }
+
+      console.log(`🔄 Syncing ${pending.length} offline task(s)...`);
+
+      const updatedTasks = [...localTasks];
+
+      for (const task of pending) {
+        try {
+          const res = await API.post(
+            "tasks/",
+            { title: task.title, due_date: task.due_date },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          // replace local temp entry with server record (and clear pendingSync)
+          const index = updatedTasks.findIndex((t) => t.id === task.id);
+          if (index !== -1) {
+            updatedTasks[index] = { ...res.data, pendingSync: false };
+          }
+          console.log(`✅ Synced: ${task.title}`);
+        } catch (err) {
+          console.error("❌ Failed to sync:", task.title);
+          // leave it pending for next attempt
+        }
+      }
+
+      // persist final state and update UI
+      localStorage.setItem("localTasks", JSON.stringify(updatedTasks));
+      setTasks(updatedTasks);
+      console.log("✅ Offline tasks synced successfully!");
+    };
+
+    window.addEventListener("online", syncOfflineTasks);
+    return () => window.removeEventListener("online", syncOfflineTasks);
+  }, [token]);
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -46,32 +124,135 @@ export default function TaskList() {
     }
   };
 
+  useEffect(() => {
+    const loadTasks = async () => {
+      // 1️⃣ Always load from localStorage first (offline persistence)
+      const cached = JSON.parse(localStorage.getItem("localTasks") || "[]");
+      if (cached.length > 0) {
+        console.log("📦 Loaded offline tasks:", cached.length);
+        setTasks(cached);
+        setLoading(false);
+      }
+
+      // 2️⃣ If online → merge backend + offline
+      if (token && navigator.onLine) {
+        try {
+          const res = await API.get("tasks/", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const onlineTasks = res.data;
+
+          // Keep unsynced local ones + merge backend
+          const local = JSON.parse(localStorage.getItem("localTasks") || "[]");
+          const merged = [
+            ...local.filter((t) => t.pendingSync),
+            ...onlineTasks,
+          ];
+
+          setTasks(merged);
+          localStorage.setItem("localTasks", JSON.stringify(merged));
+          console.log("✅ Loaded & merged online tasks");
+        } catch (err) {
+          console.error("❌ Failed to fetch tasks, showing cached only");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadTasks();
+  }, [token]);
+
   const getTasks = async () => {
     try {
       const res = await API.get("tasks/", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setTasks(res.data);
-      localStorage.setItem("taskvault_tasks", JSON.stringify(res.data));
+      const onlineTasks = res.data;
+
+      const localTasks = JSON.parse(localStorage.getItem("localTasks") || "[]");
+      const merged = [
+        ...localTasks.filter((t) => t.pendingSync),
+        ...onlineTasks,
+      ];
+
+      setTasks(merged);
+      localStorage.setItem("localTasks", JSON.stringify(merged));
     } catch (err) {
-      console.error("❌ Error fetching tasks:", err);
-      if (err.response?.status === 401) logout();
+      console.error("❌ Error fetching tasks, using offline cache instead");
+      const local = JSON.parse(localStorage.getItem("localTasks") || "[]");
+      setTasks(local);
     }
   };
 
-  // Load from cache first, then fetch fresh data
   useEffect(() => {
-    const cached = localStorage.getItem("taskvault_tasks");
-    if (cached) {
-      setTasks(JSON.parse(cached));
-      setLoading(false);
-    }
+    const mergeOnlineTasks = async () => {
+      if (!navigator.onLine) return;
 
-    if (token) {
-      Promise.all([getUser(), getTasks()]).finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+      try {
+        const res = await API.get("tasks/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const onlineTasks = res.data;
+        const localTasks = JSON.parse(
+          localStorage.getItem("localTasks") || "[]"
+        );
+
+        // Merge unique ones only
+        const merged = [
+          ...localTasks.filter((lt) => lt.pendingSync),
+          ...onlineTasks,
+        ];
+        setTasks(merged);
+        localStorage.setItem("localTasks", JSON.stringify(merged));
+      } catch (err) {
+        console.error("⚠️ Failed to merge online tasks");
+      }
+    };
+
+    mergeOnlineTasks();
+  }, [token]);
+
+  // Load from cache first, then fetch fresh data
+  // ✅ Always prefer localTasks (offline cache) and then merge with online
+  useEffect(() => {
+    const loadPersistedTasks = async () => {
+      const local = JSON.parse(localStorage.getItem("localTasks") || "[]");
+      if (local.length > 0) {
+        console.log("📦 Loaded persisted local tasks:", local.length);
+        setTasks(local);
+        setLoading(false);
+      }
+
+      // Fetch from backend only if online
+      if (token && navigator.onLine) {
+        try {
+          await getUser();
+
+          const res = await API.get("tasks/", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const online = res.data;
+
+          // Merge unsynced local tasks + online ones
+          const merged = [...local.filter((t) => t.pendingSync), ...online];
+
+          setTasks(merged);
+          localStorage.setItem("localTasks", JSON.stringify(merged));
+          console.log("✅ Synced online + offline tasks");
+        } catch (err) {
+          console.error("❌ Could not fetch tasks, showing cached only");
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // Offline mode fallback
+        console.warn("📴 Offline mode - using cached tasks");
+        setLoading(false);
+      }
+    };
+
+    loadPersistedTasks();
   }, [token]);
 
   const addTask = async () => {
@@ -82,51 +263,97 @@ export default function TaskList() {
         ? new Date(dueDate).toISOString().split("T")[0]
         : null;
 
-    // 1️⃣ Optimistically update the UI
     const tempId = Date.now();
     const newTask = {
       id: tempId,
       title,
       due_date: formattedDate,
       completed: false,
+      pendingSync: !navigator.onLine, // track offline tasks
     };
-    setTasks((prev) => [...prev, newTask]);
 
+    // 1️⃣ Add to UI immediately
+    setTasks((prev) => [...prev, newTask]);
     setTitle("");
     setDueDate("");
 
+    // 2️⃣ Always store locally (persistent even after reload)
+    const localTasks = JSON.parse(localStorage.getItem("localTasks") || "[]");
+    localTasks.push(newTask);
+    localStorage.setItem("localTasks", JSON.stringify(localTasks));
+
+    // 3️⃣ If offline → skip API call
+    if (!navigator.onLine) {
+      console.log("💾 Saved offline:", newTask.title);
+      return;
+    }
+
+    // 4️⃣ If online → sync instantly
     try {
-      // 2️⃣ Send request in background
       const res = await API.post(
         "tasks/",
         { title, due_date: formattedDate },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // 3️⃣ Replace temp task with actual task returned by backend
+      // Replace temp with actual task
       setTasks((prev) =>
-        prev.map((task) => (task.id === tempId ? res.data : task))
+        prev.map((task) =>
+          task.id === tempId ? { ...res.data, pendingSync: false } : task
+        )
       );
+
+      // Update local storage too
+      const updated = JSON.parse(
+        localStorage.getItem("localTasks") || "[]"
+      ).map((t) => (t.id === tempId ? { ...res.data, pendingSync: false } : t));
+      localStorage.setItem("localTasks", JSON.stringify(updated));
     } catch (err) {
       console.error("❌ Error adding task:", err);
-      // 4️⃣ Revert if request failed
+      // Revert if failed
       setTasks((prev) => prev.filter((t) => t.id !== tempId));
     }
   };
 
+  // DELETE (supports offline / online / optimistic UI)
   const deleteTask = async (id) => {
-    // Optimistic UI update
-    const oldTasks = [...tasks];
-    setTasks(tasks.filter((t) => t.id !== id));
+    const previous = [...tasks];
+    const local = JSON.parse(localStorage.getItem("localTasks") || "[]");
+    const taskToDelete = local.find((t) => t.id === id);
 
+    // Optimistic UI: remove immediately
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+    const localAfterRemove = local.filter((t) => t.id !== id);
+    localStorage.setItem("localTasks", JSON.stringify(localAfterRemove));
+
+    // 🟡 Case 1: If task was never synced → delete locally only
+    if (taskToDelete && taskToDelete.pendingSync) {
+      console.log("🗑️ Deleted unsynced local task:", taskToDelete.title);
+      return;
+    }
+
+    // 🟢 Case 2: If offline → queue for delete later
+    if (!navigator.onLine) {
+      const queued = JSON.parse(localStorage.getItem("localDeletes") || "[]");
+      queued.push({ id });
+      localStorage.setItem("localDeletes", JSON.stringify(queued));
+      console.warn("⚠️ Offline: queued delete for server:", id);
+      return;
+    }
+
+    // 🔵 Case 3: Online → attempt server delete
     try {
       await API.delete(`tasks/${id}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      console.log("✅ Deleted on server:", id);
     } catch (err) {
-      console.error("❌ Delete error:", err);
-      // Revert if delete fails
-      setTasks(oldTasks);
+      console.error("❌ Delete failed:", err);
+
+      // Rollback (only if server delete fails)
+      setTasks(previous);
+      localStorage.setItem("localTasks", JSON.stringify(previous));
     }
   };
 
@@ -173,72 +400,105 @@ export default function TaskList() {
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: "auto", textAlign: "center" }}>
-      <button onClick={logout}>Logout</button>
-      <h3>👋 Welcome, {username || "Guest"}</h3>
-      <h1>📁 TaskVault Lite</h1>
-
-      <div style={{ margin: "20px 0px" }}>
-        {["all", "completed", "pending"].map((f) => (
-          <button
-            key={f}
-            style={{
-              margin: "10px",
-              fontWeight: filter === f ? "bold" : "normal",
-            }}
-            onClick={() => setFilter(f)}
-          >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
+    <div className="tasklist-page">
+      <motion.div
+        className="tasklist-card"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="tasklist-header">
+          <button onClick={logout} className="btn-logout">
+            Logout
           </button>
-        ))}
-      </div>
+          <h3 className="usernameClass">👋 Welcome, {username || "Guest"}</h3><br /><br />
+          <h1>📁 TaskVault Lite</h1>
+        </div>
 
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="New task..."
-      />
-      <input
-        type="date"
-        value={dueDate}
-        onChange={(e) => setDueDate(e.target.value)}
-        style={{ margin: "10px" }}
-      />
-      <button onClick={addTask}>Add</button>
+        {/* Filter Buttons */}
+        <div className="filter-buttons">
+          {["all", "completed", "pending"].map((f) => (
+            <button
+              key={f}
+              className={`filter-btn ${filter === f ? "active" : ""}`}
+              onClick={() => setFilter(f)}
+            >
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
+        </div>
 
-      {loading ? (
-        <p>Loading tasks...</p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {filteredTasks.length > 0 ? (
-            filteredTasks.map((t) => (
-              <li key={t.id} style={{ marginBottom: "10px" }}>
-                <input
-                  type="checkbox"
-                  checked={t.completed}
-                  onChange={() => toggleComplete(t.id, !t.completed)}
-                  style={{ marginRight: "10px" }}
-                />
-                <span
-                  style={{
-                    textDecoration: t.completed ? "line-through" : "none",
-                  }}
-                >
-                  {t.title}
-                  {t.due_date && (
-                    <small style={{ marginLeft: "10px", color: "gray" }}>
-                      (Due: {t.due_date})
-                    </small>
-                  )}
-                </span>
-                <button onClick={() => deleteTask(t.id)}>❌</button>
-              </li>
-            ))
+        {/* Task Input */}
+        <div className="task-input">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="New task..."
+            disabled={loading}
+          />
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            disabled={loading}
+          />
+          <button className="btn-add" onClick={addTask} disabled={loading}>
+            {loading ? "Adding..." : "Add"}
+          </button>
+        </div>
+
+        {/* Task List */}
+        <div className="task-container">
+          {loading ? (
+            <p className="loading">Loading tasks...</p>
+          ) : filteredTasks.length > 0 ? (
+            <ul className="task-list">
+              {filteredTasks.length > 0 ? (
+                filteredTasks.map((t) => (
+                  <li
+                    key={t.id}
+                    className={`task-item ${t.completed ? "completed" : ""}`}
+                  >
+                    <div className="task-left">
+                      <input
+                        type="checkbox"
+                        checked={t.completed}
+                        onChange={() => toggleComplete(t.id, !t.completed)}
+                      />
+                      <div className="task-info">
+                        <span className="task-title">{t.title}</span>
+                        {t.pendingSync && (
+                          <small
+                            style={{ color: "#fbbf24", marginLeft: "6px" }}
+                          >
+                            (Pending Sync)
+                          </small>
+                        )}
+
+                        {t.due_date && (
+                          <small className="task-date">
+                            (Due: {t.due_date})
+                          </small>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => deleteTask(t.id)}
+                      className="btn-delete"
+                    >
+                      ❌
+                    </button>
+                  </li>
+                ))
+              ) : (
+                <p className="no-tasks">No tasks yet.</p>
+              )}
+            </ul>
           ) : (
-            <p>No tasks yet.</p>
+            <p className="no-tasks">No tasks yet.</p>
           )}
-        </ul>
-      )}
+        </div>
+      </motion.div>
     </div>
   );
 }

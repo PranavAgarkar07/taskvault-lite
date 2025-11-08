@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Login from "./Login.jsx";
 import Register from "./Register.jsx";
 import TaskList from "./TaskList.jsx";
+import Home from "./Home.jsx"; // ⬅️ Import the dark animated homepage
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -16,26 +17,29 @@ export default function App() {
 
   return (
     <Routes>
-      {/* Login route */}
+      {/* ===== Landing Page ===== */}
+      <Route path="/" element={<Home />} />
+
+      {/* ===== Login Page ===== */}
       <Route
-        path="/"
+        path="/login"
         element={
           token ? <Navigate to="/dashboard" replace /> : <Login setToken={setToken} />
         }
       />
 
-      {/* Registration route */}
+      {/* ===== Register Page ===== */}
       <Route path="/register" element={<Register />} />
 
-      {/* Dashboard route */}
+      {/* ===== Dashboard (Protected) ===== */}
       <Route
         path="/dashboard"
         element={
-          token ? <TaskList token={token} /> : <Navigate to="/" replace />
+          token ? <TaskList token={token} /> : <Navigate to="/login" replace />
         }
       />
 
-      {/* Fallback route for unknown URLs */}
+      {/* ===== Fallback ===== */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

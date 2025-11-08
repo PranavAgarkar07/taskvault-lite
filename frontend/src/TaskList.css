@@ -1,0 +1,220 @@
+.tasklist-page {
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #1e293b, #0f172a 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Inter", sans-serif;
+  color: #f8fafc;
+  padding: 20px;
+}
+
+.tasklist-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  width: 100%;
+  max-width: 600px;
+  padding: 40px 30px;
+  text-align: center;
+}
+
+.tasklist-header h3 {
+  color: #93c5fd;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.tasklist-header h1 {
+  color: #fff;
+  margin-bottom: 20px;
+  font-size: 2rem;
+}
+
+.btn-logout {
+  background: #ef4444;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  float: right;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+.btn-logout:hover {
+  background: #dc2626;
+}
+
+/* FILTERS */
+.filter-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.filter-btn {
+  background: #1e293b;
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.filter-btn.active {
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+}
+.filter-btn:hover {
+  background: rgba(37, 99, 235, 0.2);
+}
+
+/* INPUT */
+.task-input {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.task-input input {
+  background: #0b1120;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border 0.2s ease, box-shadow 0.3s ease;
+}
+.task-input input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-add {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.btn-add:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+/* === Task List Styling (After Add) === */
+
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.task-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.25);
+}
+
+.task-item.completed {
+  opacity: 0.7;
+  text-decoration: line-through;
+}
+
+.task-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.task-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.task-title {
+  font-size: 1rem;
+  color: #f8fafc;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.task-date {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.btn-delete {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  color: #f87171;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.3s ease;
+}
+
+.btn-delete:hover {
+  transform: scale(1.2);
+  color: #ef4444;
+}
+
+.no-tasks {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 1rem;
+  margin-top: 15px;
+}
+
+/* Responsive behavior */
+@media (max-width: 480px) {
+  .task-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 14px;
+  }
+
+  .btn-delete {
+    align-self: flex-end;
+  }
+
+  .task-title {
+    font-size: 0.95rem;
+  }
+}
+
+.usernameClass{
+    float: left;
+    margin-top: 8px;
+    color: #93c5fd;
+    font-weight: 500;
+}
