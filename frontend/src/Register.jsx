@@ -5,6 +5,8 @@ import API from "./api";
 import { AnimatePresence } from "framer-motion";
 import "./Register.css";
 import logoUrl from "./download.svg";
+import { useNavigate } from "react-router-dom";
+
 
 export default function Register() {
   const [username, setUsername] = useState("");
@@ -13,6 +15,7 @@ export default function Register() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
+  const navigate = useNavigate();
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -54,7 +57,7 @@ export default function Register() {
 
       // ⏳ Redirect after short delay
       setTimeout(() => {
-        navigate("/login"); // redirect to your login page
+        navigate("/dashboard"); // redirect to your login page
       }, 2000);
     } catch (err) {
       console.error("❌ Register error:", err);
@@ -118,6 +121,11 @@ export default function Register() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             disabled={loading}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                register();
+              }
+            }}
           />
         </motion.div>
 

@@ -17,7 +17,45 @@ export default function TaskList() {
   const [editingDueDate, setEditingDueDate] = useState("");
   const [editLoading, setEditLoading] = useState(false);
   const [syncStatus, setSyncStatus] = useState("");
+
   const didRun = useRef(false);
+
+  // ✅ MIGRATION: Auto-cleanup corrupted localStorage data
+  useEffect(() => {
+    const CURRENT_VERSION = "2.0";
+    const storedVersion = localStorage.getItem("taskvault_version");
+
+    if (storedVersion !== CURRENT_VERSION) {
+      console.log("🔄 Migrating to version", CURRENT_VERSION);
+
+      const tasksToKeep = [];
+      try {
+        const localTasks = JSON.parse(
+          localStorage.getItem("localTasks") || "[]"
+        );
+        // Keep only temp/pending tasks (user's unsaved work)
+        localTasks.forEach((task) => {
+          if (task.id?.toString().startsWith("temp-") || task.pendingSync) {
+            tasksToKeep.push(task);
+          }
+        });
+      } catch (err) {
+        console.error("Migration error:", err);
+      }
+
+      // Clear old data
+      localStorage.removeItem("localTasks");
+      localStorage.removeItem("localDeletes");
+
+      // Restore unsaved work
+      if (tasksToKeep.length > 0) {
+        localStorage.setItem("localTasks", JSON.stringify(tasksToKeep));
+        console.log(`✅ Preserved ${tasksToKeep.length} unsaved task(s)`);
+      }
+
+      localStorage.setItem("taskvault_version", CURRENT_VERSION);
+    }
+  }, []);
 
   const fadeUp = {
     hidden: { opacity: 0, y: 40 },
@@ -195,11 +233,16 @@ export default function TaskList() {
   }, [token]);
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("taskvault_user");
-    localStorage.removeItem("taskvault_tasks");
+    // 🔒 Completely clear all stored data for full security
+    localStorage.clear();
+
+    // Reset token in state
     setToken(null);
-    window.location.reload();
+
+    // Optional: add a quick delay for smooth UI feedback
+    setTimeout(() => {
+      window.location.reload();
+    }, 300);
   };
 
   const getUser = async () => {
@@ -315,6 +358,15 @@ export default function TaskList() {
     const localAfterRemove = local.filter((t) => t.id !== id);
     localStorage.setItem("localTasks", JSON.stringify(localAfterRemove));
 
+    // ✅ NEW: Check if it's a temp ID (never synced to server)
+    if (id.toString().startsWith("temp-")) {
+      console.log(
+        "🗑️ Deleted temp local task (never synced):",
+        taskToDelete?.title
+      );
+      return;
+    }
+
     // 🟡 Case 1: If task was never synced → delete locally only
     if (taskToDelete && taskToDelete.pendingSync) {
       console.log("🗑️ Deleted unsynced local task:", taskToDelete.title);
@@ -347,6 +399,23 @@ export default function TaskList() {
   };
 
   const toggleComplete = async (id, newStatus) => {
+    // ✅ NEW: Don't sync temp tasks to server
+    if (id.toString().startsWith("temp-")) {
+      // Just update locally
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === id ? { ...task, completed: newStatus } : task
+        )
+      );
+      const local = JSON.parse(localStorage.getItem("localTasks") || "[]");
+      const updatedLocal = local.map((t) =>
+        t.id === id ? { ...t, completed: newStatus, pendingSync: true } : t
+      );
+      localStorage.setItem("localTasks", JSON.stringify(updatedLocal));
+      console.log("💾 Updated temp task locally (will sync when created):", id);
+      return;
+    }
+
     // 1️⃣ Optimistically update UI
     setTasks((prev) =>
       prev.map((task) =>
@@ -444,6 +513,17 @@ export default function TaskList() {
     );
     localStorage.setItem("localTasks", JSON.stringify(updatedLocal));
 
+    // ✅ NEW: Don't sync temp tasks to server yet
+    if (id.toString().startsWith("temp-")) {
+      console.log(
+        "💾 Updated temp task locally (will sync when created):",
+        editingTitle
+      );
+      setEditLoading(false);
+      cancelEdit();
+      return;
+    }
+
     // 3️⃣ If offline, stop here
     if (!navigator.onLine) {
       console.log("💾 Saved offline edit, will sync later:", editingTitle);
@@ -455,7 +535,7 @@ export default function TaskList() {
     // 4️⃣ If online, sync to backend
     try {
       const res = await API.patch(
-        `tasks/${id}/update/`, // matches your Django @api_view(['PATCH'])
+        `tasks/${id}/update/`,
         { title: editingTitle, due_date: formattedDate },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -518,8 +598,10 @@ export default function TaskList() {
           <button onClick={logout} className="btn-logout">
             Logout
           </button>
-          
-          <Link to="/"><h3 className="usernameClass">👋 Welcome, {username || "Guest"}</h3></Link>
+
+          <Link to="/">
+            <h3 className="usernameClass">👋 Welcome, {username || "Guest"}</h3>
+          </Link>
           <br />
           <br />
           <br />
@@ -545,13 +627,24 @@ export default function TaskList() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="New task..."
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                addTask();
+              }
+            }}
             disabled={loading}
           />
           <input
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                addTask();
+              }
+            }}
             disabled={loading}
+            style={{ colorScheme: "dark" }}
           />
           <button className="btn-add" onClick={addTask} disabled={loading}>
             {loading ? "Adding..." : "Add"}

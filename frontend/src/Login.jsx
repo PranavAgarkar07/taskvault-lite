@@ -92,6 +92,11 @@ export default function Login({ setToken }) {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                login();
+              }
+            }}
             disabled={loading}
           />
         </motion.div>
