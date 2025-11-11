@@ -67,7 +67,7 @@ It supports:
 
 ### 🐍 Backend Setup (Django)
 ```bash
-git clone https://github.com/<your-username>/taskvault-lite.git
+git clone https://github.com/pranavagarkar07/taskvault-lite.git
 cd taskvault-lite/backend
 
 python -m venv venv
